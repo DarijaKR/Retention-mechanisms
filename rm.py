@@ -33,10 +33,11 @@ def getCorrelationText(value):
   return 'R\u00b2=' + valueString
 
 def getMinValuesText(coefficients):
+  global fiMin # needed for range end on sliced model
   fiMin = -coefficients[1] / (2 * coefficients[0])
-  xMin = ((decimals * coefficients[0] * coefficients[2]) - math.pow(coefficients[1], 2)) / (decimals * coefficients[0])
-  xMinAntilog = math.pow(10, xMin)
-  return ', Fimin=' + str(round(fiMin, decimals)) + ', Xmin=' + str(round(xMin, decimals)) + ', k\'=' + str(round(xMinAntilog, decimals))
+  Ymin = ((decimals * coefficients[0] * coefficients[2]) - math.pow(coefficients[1], 2)) / (decimals * coefficients[0])
+  YminAntilog = math.pow(10, Ymin)
+  return ', Fimin=' + str(round(fiMin, decimals)) + ', Ymin=' + str(round(Ymin, decimals)) + ', k\'=' + str(round(YminAntilog, decimals))
 
 def calculateY(xInput, power, polynomialCoefficients):
   result = []
@@ -129,10 +130,16 @@ def getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, isPartial):
   d['coefficientSum'] = coefficientSum
   return d
   
+def getRangeEnd(xInput, isRightModel):
+  rangeEnd = 0
+  for x in xInput:
+    if (x < fiMin and not(isRightModel)) or (x > fiMin and isRightModel):
+      rangeEnd += 1
+  return rangeEnd
+
 def getBestSlicedModel(xInput, yInput, rightModel):
-  # adjust these two values below if needed
   rangeStart = 5
-  rangeEnd = 8
+  rangeEnd = getRangeEnd(xInput, rightModel)
   if (rightModel):
     xInput = list(reversed(xInput[-rangeEnd:]))
     yInput = list(reversed(yInput[-rangeEnd:]))
