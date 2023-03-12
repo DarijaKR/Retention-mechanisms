@@ -52,7 +52,6 @@ def showPlotAndWriteToCSV(title, xInput, yInput, yResult):
   plt.title(title)
   plt.plot(xInput, yInput, 'go', label='Input values' )
   plt.plot(xInput, yResult, label='Function values' )
-  plt.legend(loc='upper center')
   plt.grid(True)
   plt.show()
   with open('./output1.csv', 'w', newline='') as file:
@@ -141,7 +140,7 @@ def getBestSlicedModel(xInput, yInput, rightModel):
   partialModelValues = getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, True)
   adsorptionModelValues = getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, False)
 
-  isPartialWinner = partialModelValues['coefficientSum'] > adsorptionModelValues['coefficientSum']
+  isPartialWinner = partialModelValues['modelCoefficient'] > adsorptionModelValues['modelCoefficient']
   winnerIndex = partialModelValues['modelIndex'] if isPartialWinner else adsorptionModelValues['modelIndex']
   result1 = calculateSlicedModel(xInput, yInput, winnerIndex, True)
   result2 = calculateSlicedModel(xInput, yInput, winnerIndex, False)
