@@ -11,8 +11,9 @@ This script can work with Python 2, but it is recommended to use it with Python 
 ### Run these commands:
 
 >pip install numpy\
->pip install matplotlib\
->pip install pandas
+>pip install matplotlib.pyplot\
+>pip install pandas\
+>pip install scipy\
 
 ## Run the script (without input)
 

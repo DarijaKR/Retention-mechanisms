@@ -4,6 +4,7 @@ import pandas as pd
 import sys
 import math
 import csv
+#todo: add to readme all deps and extend readme docs!
 
 decimals = 4
 
@@ -34,9 +35,9 @@ def getCorrelationText(value):
 
 def getMinValuesText(coefficients):
   fiMin = -coefficients[1] / (2 * coefficients[0])
-  xMin = ((decimals * coefficients[0] * coefficients[2]) - math.pow(coefficients[1], 2)) / (decimals * coefficients[0])
-  xMinAntilog = math.pow(10, xMin)
-  return ', Fimin=' + str(round(fiMin, decimals)) + ', Xmin=' + str(round(xMin, decimals)) + ', k\'=' + str(round(xMinAntilog, decimals))
+  yMin = ((decimals * coefficients[0] * coefficients[2]) - math.pow(coefficients[1], 2)) / (decimals * coefficients[0])
+  yMinAntilog = math.pow(10, yMin)
+  return ', Fimin=' + str(round(fiMin, decimals)) + ', yMin=' + str(round(yMin, decimals)) + ', k\'=' + str(round(yMinAntilog, decimals))
 
 def calculateY(xInput, power, polynomialCoefficients):
   result = []
@@ -140,7 +141,7 @@ def getBestSlicedModel(xInput, yInput, rightModel):
   partialModelValues = getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, True)
   adsorptionModelValues = getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, False)
 
-  isPartialWinner = partialModelValues['modelCoefficient'] > adsorptionModelValues['modelCoefficient']
+  isPartialWinner = partialModelValues['coefficientSum'] > adsorptionModelValues['coefficientSum']
   winnerIndex = partialModelValues['modelIndex'] if isPartialWinner else adsorptionModelValues['modelIndex']
   result1 = calculateSlicedModel(xInput, yInput, winnerIndex, True)
   result2 = calculateSlicedModel(xInput, yInput, winnerIndex, False)
@@ -170,7 +171,8 @@ try:
     yInput = list(map(float, input['yInput']))
 
     if (len(xInput) == len(yInput)):
-      calculateDualModel(xInput, yInput)
+      #todo: dual is actually coeff.py
+      calculateDualModel(xInput, yInput) #todo: this should be quadratic
       getBestSlicedModel(xInput, yInput, False)
       getBestSlicedModel(xInput, yInput, True)
     else:
