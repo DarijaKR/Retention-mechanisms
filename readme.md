@@ -2,8 +2,8 @@
 
 ## Install Python version 3 for your operating system
 
-Download Python installer from this link and install it on your machine (if not installed previously)
-https://www.python.org/downloads/ \
+Download Python installer from this link and install it on your machine (if not installed previously):\
+https://www.python.org/downloads
 This script can work with Python 2, but it is recommended to use it with Python 3.
 
 ## Install Python packages that are used in the script
@@ -11,9 +11,9 @@ This script can work with Python 2, but it is recommended to use it with Python 
 ### Run these commands:
 
 >pip install numpy\
->pip install matplotlib.pyplot\
+>pip install matplotlib\
 >pip install pandas\
->pip install scipy\
+>pip install scipy
 
 ## Run the script (without input)
 

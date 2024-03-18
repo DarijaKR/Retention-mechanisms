@@ -4,7 +4,7 @@ import pandas as pd
 import sys
 import math
 import csv
-#todo: add to readme all deps and extend readme docs!
+from scipy.optimize import curve_fit
 
 decimals = 4
 
@@ -79,7 +79,43 @@ def showSubplotsAndWriteToCSV(title1, title2, xInput1, yInput1, yResult1, xInput
     for i in range(len(xInput1)):
       writer.writerow([xInput1[i], yInput1[i], yResult1[i], xInput2[i], yInput2[i], yResult2[i]])
 
-def calculateDualModel(xInput, yInput):
+def calculateDualModel(input):
+  model_function = lambda x, a, b, c, d: a + b * x - c * np.log10( 1 + d * x)
+  bounds = ([0, 0, 0, 0], [10, 10, 10, 10])
+  params, covariance = curve_fit(model_function, input['xInput'], input['yInput'], p0=(1, 1, 1, 1), maxfev = 10000, bounds = bounds)
+  print(params, covariance)
+
+  y_fitted = model_function(input['xInput'], *params)
+  residuals = input['yInput'] - y_fitted
+  ss_res = np.sum(residuals**2)
+  ss_tot = np.sum((input['yInput'] - np.mean(input['yInput']))**2)
+  r_squared = 1 - (ss_res / ss_tot)
+
+  print(y_fitted, r_squared)
+  print ((0.434*params[2])/(params[1]-1/params[3]))
+
+  n = len(input['yInput'])
+  p = len(params)
+  adjusted_r_squared = 1 - (1 - r_squared) * ((n - 1) / (n - p - 1))
+  predicted_r_squared = 1 - ((ss_res / (n - p - 1)) / (ss_tot / (n - 1)))
+  print("Adjusted R-squared:", adjusted_r_squared)
+  print("Predicted R-squared:", predicted_r_squared)
+
+  coordinates_set1 = list(zip(input['xInput'], input['yInput']))
+  coordinates_set2 = list(zip(input['xInput'], y_fitted))
+  x_set1, y_set1 = zip(*coordinates_set1)
+  x_set2, y_set2 = zip(*coordinates_set2)
+
+  plt.title("R\u00b2 = " + str(r_squared))
+  plt.plot(x_set1, y_set1, label='Set 1', color='blue')
+  plt.plot(x_set1, y_set1, marker='o', color='blue')
+  plt.plot(x_set2, y_set2, label='Set 2', color='red')
+  plt.plot(x_set2, y_set2, marker='o', color='red')
+  plt.legend()
+  plt.grid(True)
+  plt.show()
+
+def calculateQuadraticModel(xInput, yInput):
   power = 2
   polynomialCoefficients = np.polyfit(xInput, yInput, power)
   yResult = calculateY(xInput, power, polynomialCoefficients)
@@ -171,8 +207,8 @@ try:
     yInput = list(map(float, input['yInput']))
 
     if (len(xInput) == len(yInput)):
-      #todo: dual is actually coeff.py
-      calculateDualModel(xInput, yInput) #todo: this should be quadratic
+      calculateDualModel(input)
+      calculateQuadraticModel(xInput, yInput)
       getBestSlicedModel(xInput, yInput, False)
       getBestSlicedModel(xInput, yInput, True)
     else:
