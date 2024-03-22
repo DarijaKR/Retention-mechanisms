@@ -49,8 +49,12 @@ def calculateY(xInput, power, polynomialCoefficients):
       result = None
   return result
 
-def showDualPlotAndWriteToCSV(title, xSet1, ySet1, xSet2, ySet2):
+def showDualPlotAndWriteToCSV(title, xSet1, ySet1, xSet2, ySet2, params, fiMin):
   plt.title(title)
+  subtitle = 'Params='
+  for i in range(len(params)):
+    subtitle += str(round(params[i], decimals)) + ', '
+  plt.suptitle(subtitle + 'Fimin=' + str(fiMin))
   plt.plot(xSet1, ySet1, label='Set 1', color='blue')
   plt.plot(xSet1, ySet1, marker='o', color='blue')
   plt.plot(xSet2, ySet2, label='Set 2', color='red')
@@ -58,6 +62,11 @@ def showDualPlotAndWriteToCSV(title, xSet1, ySet1, xSet2, ySet2):
   plt.legend()
   plt.grid(True)
   plt.show()
+  with open('./output1.csv', 'w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow(['xInput', 'yInput', 'yFitted', title])
+    for i in range(len(xSet1)):
+      writer.writerow([xSet1[i], ySet1[i], str(round(ySet2[i], decimals))])
 
 def showQuadraticPlotAndWriteToCSV(title, xInput, yInput, yResult):
   plt.title(title)
@@ -91,22 +100,17 @@ def showSubplotsAndWriteToCSV(title1, title2, xInput1, yInput1, yResult1, xInput
       writer.writerow([xInput1[i], yInput1[i], yResult1[i], xInput2[i], yInput2[i], yResult2[i]])
 
 def calculateDualModel(xInput, yInput):
-  #todo: not written to CSV
   modelFunction = lambda x, a, b, c, d: a + b * x - c * np.log10( 1 + d * x)
   # adjust bounds and maxfev if needed for different precision
   bounds = ([0, 0, 0, 0], [100, 100, 100, 100])
   params, covariance = curve_fit(modelFunction, xInput, yInput, p0=(1, 1, 1, 1), maxfev = 10000, bounds = bounds)
-  print(params, covariance)
 
-  #todo: decide what to show on the graph, and what should be left as part of the print function
   yFitted = modelFunction(xInput, *params)
   residuals = yInput - yFitted
   ssRes = np.sum(residuals**2)
   ssTot = np.sum(yInput - np.mean(yInput)**2)
   rSquared = 1 - (ssRes / ssTot)
-
-  print(yFitted, rSquared)
-  print((0.434*params[2])/(params[1]-1/params[3])) # function minimum
+  fiMin = round((0.434*params[2])/(params[1]-1/params[3]), decimals)
 
   n = len(yInput)
   p = len(params)
@@ -118,7 +122,7 @@ def calculateDualModel(xInput, yInput):
   xSet1, ySet1 = zip(*coordinatesSet1)
   xSet2, ySet2 = zip(*coordinatesSet2)
   title = getCorrelationText(rSquared) + ', Adjusted R\u00b2=' + str(round(adjustedRSquared, decimals)) + ', Predicted R\u00b2=' + str(round(predictedRSquared, decimals))
-  showDualPlotAndWriteToCSV(title, xSet1, ySet1, xSet2, ySet2)
+  showDualPlotAndWriteToCSV(title, xSet1, ySet1, xSet2, ySet2, params, fiMin)
 
 def calculateQuadraticModel(xInput, yInput):
   power = 2
