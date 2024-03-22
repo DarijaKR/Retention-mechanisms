@@ -42,8 +42,8 @@ python3 rm.py 0.06,0.08,0.1,0.12 0.1,0.2,0.3,0.4
 
 ## Results and errors
 
-If input values are sent correctly, script will show 3 plots with **Dual**, **HILIC** and **RP-HPLC** models respectively.\
+If input values are sent correctly, script will show 4 plots with **Dual**, **Quadratic**, **HILIC** and **RP-HPLC** models respectively.\
 Winers for **HILIC** and **RP-HPLC** models will be shown in the plots.\
-Calculated values will also be stored in files **output1.csv**, **output2.csv** and **output3.csv**.
+Calculated values will also be stored in files **output1.csv**, **output2.csv**, **output3.csv** and **output4.csv**.
 
 If there is an error during the script run, it will be written in console (command line or terminal).

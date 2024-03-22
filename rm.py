@@ -49,13 +49,24 @@ def calculateY(xInput, power, polynomialCoefficients):
       result = None
   return result
 
-def showPlotAndWriteToCSV(title, xInput, yInput, yResult):
+def showDualPlotAndWriteToCSV(title, xSet1, ySet1, xSet2, ySet2):
+  plt.title(title)
+  plt.plot(xSet1, ySet1, label='Set 1', color='blue')
+  plt.plot(xSet1, ySet1, marker='o', color='blue')
+  plt.plot(xSet2, ySet2, label='Set 2', color='red')
+  plt.plot(xSet2, ySet2, marker='o', color='red')
+  plt.legend()
+  plt.grid(True)
+  plt.show()
+
+def showQuadraticPlotAndWriteToCSV(title, xInput, yInput, yResult):
   plt.title(title)
   plt.plot(xInput, yInput, 'go', label='Input values' )
   plt.plot(xInput, yResult, label='Function values' )
+  plt.legend()
   plt.grid(True)
   plt.show()
-  with open('./output1.csv', 'w', newline='') as file:
+  with open('./output2.csv', 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(['xInput', 'yInput', 'yResult', title])
     for i in range(len(xInput)):
@@ -72,48 +83,42 @@ def showSubplotsAndWriteToCSV(title1, title2, xInput1, yInput1, yResult1, xInput
   axs[1].plot(xInput2, yResult2, label='Function values' )
   axs[1].set_title(title2 if isPartialWinner else title2 + ' (winner)')
   plt.show()
-  fileSuffix = '3' if rightModel else '2'
+  fileSuffix = '4' if rightModel else '3'
   with open('./output' + fileSuffix + '.csv', 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(['xInput1', 'yInput1', 'yResult1', 'xInput2', 'yInput2', 'yResult2', title1, title2])
     for i in range(len(xInput1)):
       writer.writerow([xInput1[i], yInput1[i], yResult1[i], xInput2[i], yInput2[i], yResult2[i]])
 
-def calculateDualModel(input):
-  model_function = lambda x, a, b, c, d: a + b * x - c * np.log10( 1 + d * x)
-  bounds = ([0, 0, 0, 0], [10, 10, 10, 10])
-  params, covariance = curve_fit(model_function, input['xInput'], input['yInput'], p0=(1, 1, 1, 1), maxfev = 10000, bounds = bounds)
+def calculateDualModel(xInput, yInput):
+  #todo: not written to CSV
+  modelFunction = lambda x, a, b, c, d: a + b * x - c * np.log10( 1 + d * x)
+  # adjust bounds and maxfev if needed for different precision
+  bounds = ([0, 0, 0, 0], [100, 100, 100, 100])
+  params, covariance = curve_fit(modelFunction, xInput, yInput, p0=(1, 1, 1, 1), maxfev = 10000, bounds = bounds)
   print(params, covariance)
 
-  y_fitted = model_function(input['xInput'], *params)
-  residuals = input['yInput'] - y_fitted
-  ss_res = np.sum(residuals**2)
-  ss_tot = np.sum((input['yInput'] - np.mean(input['yInput']))**2)
-  r_squared = 1 - (ss_res / ss_tot)
+  #todo: decide what to show on the graph, and what should be left as part of the print function
+  yFitted = modelFunction(xInput, *params)
+  residuals = yInput - yFitted
+  ssRes = np.sum(residuals**2)
+  ssTot = np.sum(yInput - np.mean(yInput)**2)
+  rSquared = 1 - (ssRes / ssTot)
 
-  print(y_fitted, r_squared)
-  print ((0.434*params[2])/(params[1]-1/params[3]))
+  print(yFitted, rSquared)
+  print((0.434*params[2])/(params[1]-1/params[3])) # function minimum
 
-  n = len(input['yInput'])
+  n = len(yInput)
   p = len(params)
-  adjusted_r_squared = 1 - (1 - r_squared) * ((n - 1) / (n - p - 1))
-  predicted_r_squared = 1 - ((ss_res / (n - p - 1)) / (ss_tot / (n - 1)))
-  print("Adjusted R-squared:", adjusted_r_squared)
-  print("Predicted R-squared:", predicted_r_squared)
+  adjustedRSquared = 1 - (1 - rSquared) * ((n - 1) / (n - p - 1))
+  predictedRSquared = 1 - ((ssRes / (n - p - 1)) / (ssTot / (n - 1)))
 
-  coordinates_set1 = list(zip(input['xInput'], input['yInput']))
-  coordinates_set2 = list(zip(input['xInput'], y_fitted))
-  x_set1, y_set1 = zip(*coordinates_set1)
-  x_set2, y_set2 = zip(*coordinates_set2)
-
-  plt.title("R\u00b2 = " + str(r_squared))
-  plt.plot(x_set1, y_set1, label='Set 1', color='blue')
-  plt.plot(x_set1, y_set1, marker='o', color='blue')
-  plt.plot(x_set2, y_set2, label='Set 2', color='red')
-  plt.plot(x_set2, y_set2, marker='o', color='red')
-  plt.legend()
-  plt.grid(True)
-  plt.show()
+  coordinatesSet1 = list(zip(xInput, yInput))
+  coordinatesSet2 = list(zip(xInput, yFitted))
+  xSet1, ySet1 = zip(*coordinatesSet1)
+  xSet2, ySet2 = zip(*coordinatesSet2)
+  title = getCorrelationText(rSquared) + ', Adjusted R\u00b2=' + str(round(adjustedRSquared, decimals)) + ', Predicted R\u00b2=' + str(round(predictedRSquared, decimals))
+  showDualPlotAndWriteToCSV(title, xSet1, ySet1, xSet2, ySet2)
 
 def calculateQuadraticModel(xInput, yInput):
   power = 2
@@ -121,7 +126,7 @@ def calculateQuadraticModel(xInput, yInput):
   yResult = calculateY(xInput, power, polynomialCoefficients)
   correlationCoefficient = pd.Series(yInput).corr(pd.Series(yResult)) * pd.Series(yInput).corr(pd.Series(yResult)) # R^2
   title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(correlationCoefficient) + getMinValuesText(polynomialCoefficients)
-  showPlotAndWriteToCSV(title, xInput, yInput, yResult)
+  showQuadraticPlotAndWriteToCSV(title, xInput, yInput, yResult)
 
 def getSlicedModelXInput(xInput, resultLength, isPartial):
   if (isPartial):
@@ -207,7 +212,7 @@ try:
     yInput = list(map(float, input['yInput']))
 
     if (len(xInput) == len(yInput)):
-      calculateDualModel(input)
+      calculateDualModel(input['xInput'], input['yInput']) # uses different input format
       calculateQuadraticModel(xInput, yInput)
       getBestSlicedModel(xInput, yInput, False)
       getBestSlicedModel(xInput, yInput, True)
