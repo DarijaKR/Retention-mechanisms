@@ -1,6 +1,6 @@
-output1.csv
-output2.csv
-output3.csv
-output4.csv
+output-dual-model.csv
+output-quadratic-model.csv
+output-rp-hplc.csv
+output-hilic.csv
 
 .DS_Store

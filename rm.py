@@ -62,7 +62,7 @@ def showDualPlotAndWriteToCSV(title, xSet1, ySet1, xSet2, ySet2, params, fiMin):
   plt.legend()
   plt.grid(True)
   plt.show()
-  with open('./output1.csv', 'w', newline='') as file:
+  with open('./output-dual-model.csv', 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(['xInput', 'yInput', 'yFitted', title])
     for i in range(len(xSet1)):
@@ -75,24 +75,24 @@ def showQuadraticPlotAndWriteToCSV(title, xInput, yInput, yResult):
   plt.legend()
   plt.grid(True)
   plt.show()
-  with open('./output2.csv', 'w', newline='') as file:
+  with open('./output-quadratic-model.csv', 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(['xInput', 'yInput', 'yResult', title])
     for i in range(len(xInput)):
       writer.writerow([xInput[i], yInput[i], yResult[i]])
 
-def showSubplotsAndWriteToCSV(title1, title2, xInput1, yInput1, yResult1, xInput2, yInput2, yResult2, isPartialWinner, rightModel):
+def showSubplotsAndWriteToCSV(title1, title2, xInput1, yInput1, yResult1, xInput2, yInput2, yResult2, isPartitionWinner, rightModel):
   fig, axs = plt.subplots(1, 2, constrained_layout=True)
   suptitlePrefix = 'RP-HPLC ' if rightModel else 'HILIC '
-  fig.suptitle(suptitlePrefix + 'partial and adsorption model')
+  fig.suptitle(suptitlePrefix + 'partition and adsorption model')
   axs[0].plot(xInput1, yInput1, 'go', label='Input values' )
   axs[0].plot(xInput1, yResult1, label='Function values' )
-  axs[0].set_title(title1 + ' (winner)' if isPartialWinner else title1)
+  axs[0].set_title(title1 + ' (winner)' if isPartitionWinner else title1)
   axs[1].plot(xInput2, yInput2, 'go', label='Input values' )
   axs[1].plot(xInput2, yResult2, label='Function values' )
-  axs[1].set_title(title2 if isPartialWinner else title2 + ' (winner)')
+  axs[1].set_title(title2 if isPartitionWinner else title2 + ' (winner)')
   plt.show()
-  fileSuffix = '4' if rightModel else '3'
+  fileSuffix = '-rp-hplc' if rightModel else '-hilic'
   with open('./output' + fileSuffix + '.csv', 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(['xInput1', 'yInput1', 'yResult1', 'xInput2', 'yInput2', 'yResult2', title1, title2])
@@ -132,8 +132,8 @@ def calculateQuadraticModel(xInput, yInput):
   title = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(correlationCoefficient) + getMinValuesText(polynomialCoefficients)
   showQuadraticPlotAndWriteToCSV(title, xInput, yInput, yResult)
 
-def getSlicedModelXInput(xInput, resultLength, isPartial):
-  if (isPartial):
+def getSlicedModelXInput(xInput, resultLength, isPartition):
+  if (isPartition):
     return xInput[0:resultLength]
   else:
     result = []
@@ -142,8 +142,8 @@ def getSlicedModelXInput(xInput, resultLength, isPartial):
         result.append(round(math.log10(xInput[i]), decimals))
     return result
 
-def calculateSlicedModel(xInput, yInput, resultLength, isPartial):
-  xInputNew = getSlicedModelXInput(xInput, resultLength, isPartial)
+def calculateSlicedModel(xInput, yInput, resultLength, isPartition):
+  xInputNew = getSlicedModelXInput(xInput, resultLength, isPartition)
   power = 1
   yInputNew = yInput[0:resultLength]
   polynomialCoefficients = np.polyfit(xInputNew, yInputNew, power)
@@ -158,12 +158,12 @@ def calculateSlicedModel(xInput, yInput, resultLength, isPartial):
   d['title'] = getPolynomialText(polynomialCoefficients, power) + '\n' + getCorrelationText(correlationCoefficient)
   return d
   
-def getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, isPartial):
+def getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, isPartition):
   modelCoefficient = 0
   modelIndex = 0
   coefficientSum = 0
   for i in range(rangeStart, rangeEnd):
-    result = calculateSlicedModel(xInput, yInput, i, isPartial)['correlationCoefficient']
+    result = calculateSlicedModel(xInput, yInput, i, isPartition)['correlationCoefficient']
     if (result > modelCoefficient):
       modelIndex = i
       modelCoefficient = result
@@ -183,15 +183,15 @@ def getBestSlicedModel(xInput, yInput, rightModel):
     xInput = list(reversed(xInput[-rangeEnd:]))
     yInput = list(reversed(yInput[-rangeEnd:]))
 
-  partialModelValues = getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, True)
+  partitionModelValues = getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, True)
   adsorptionModelValues = getSlicedModelValues(xInput, yInput, rangeStart, rangeEnd, False)
 
-  isPartialWinner = partialModelValues['coefficientSum'] > adsorptionModelValues['coefficientSum']
-  winnerIndex = partialModelValues['modelIndex'] if isPartialWinner else adsorptionModelValues['modelIndex']
+  isPartitionWinner = partitionModelValues['coefficientSum'] > adsorptionModelValues['coefficientSum']
+  winnerIndex = partitionModelValues['modelIndex'] if isPartitionWinner else adsorptionModelValues['modelIndex']
   result1 = calculateSlicedModel(xInput, yInput, winnerIndex, True)
   result2 = calculateSlicedModel(xInput, yInput, winnerIndex, False)
   showSubplotsAndWriteToCSV(result1['title'], result2['title'], result1['xInputNew'], result1['yInputNew'], result1['yResult'],
-    result2['xInputNew'], result2['yInputNew'], result2['yResult'], isPartialWinner, rightModel)
+    result2['xInputNew'], result2['yInputNew'], result2['yResult'], isPartitionWinner, rightModel)
 
 def getInputValues():
   d = dict()
