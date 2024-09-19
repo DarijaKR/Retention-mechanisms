@@ -110,7 +110,7 @@ def calculateDualModel(xInput, yInput):
   ssRes = np.sum(residuals**2)
   ssTot = np.sum(yInput - np.mean(yInput)**2)
   rSquared = 1 - (ssRes / ssTot)
-  fiMin = round((0.434*params[2])/(params[1]-1/params[3]), decimals)
+  fiMin = round((0.434*params[2])/(params[1])-1/params[3], decimals)
 
   n = len(yInput)
   p = len(params)
