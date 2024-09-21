@@ -21,7 +21,7 @@ This script can work with Python 2, but it is recommended to use it with Python 
 
 ## Pass input values to the script
 
-In order to pass the input values to the script, use eithier CSV file with name **input.csv** or send the values via
+In order to pass the input values to the script, use either CSV file with name **input.csv** or send the values via
 command line using comma separated values.
 
 Script can only accept numbers as input values.

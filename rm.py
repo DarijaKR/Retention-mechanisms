@@ -115,13 +115,12 @@ def calculateDualModel(xInput, yInput):
   n = len(yInput)
   p = len(params)
   adjustedRSquared = 1 - (1 - rSquared) * ((n - 1) / (n - p - 1))
-  predictedRSquared = 1 - ((ssRes / (n - p - 1)) / (ssTot / (n - 1)))
 
   coordinatesSet1 = list(zip(xInput, yInput))
   coordinatesSet2 = list(zip(xInput, yFitted))
   xSet1, ySet1 = zip(*coordinatesSet1)
   xSet2, ySet2 = zip(*coordinatesSet2)
-  title = getCorrelationText(rSquared) + ', Adjusted R\u00b2=' + str(round(adjustedRSquared, decimals)) + ', Predicted R\u00b2=' + str(round(predictedRSquared, decimals))
+  title = getCorrelationText(rSquared) + ', Adjusted R\u00b2=' + str(round(adjustedRSquared, decimals))
   showDualPlotAndWriteToCSV(title, xSet1, ySet1, xSet2, ySet2, params, fiMin)
 
 def calculateQuadraticModel(xInput, yInput):
