@@ -6,7 +6,7 @@ import math
 import csv
 from scipy.optimize import curve_fit
 
-decimals = 4
+decimals = 4 # adjust if needed to change decimals used for calculation and graph presentation
 
 def getPolynomialValue(x, coefficients, power):
   result = 0
@@ -108,7 +108,7 @@ def calculateDualModel(xInput, yInput):
   yFitted = modelFunction(xInput, *params)
   residuals = yInput - yFitted
   ssRes = np.sum(residuals**2)
-  ssTot = np.sum(yInput - np.mean(yInput)**2)
+  ssTot = np.sum((yInput - np.mean(yInput))**2)
   rSquared = 1 - (ssRes / ssTot)
   fiMin = round((0.434*params[2])/(params[1])-1/params[3], decimals)
 
