@@ -235,9 +235,9 @@ try:
 
     if len(xInput) == len(yInput):
       calculateDualModel(xInput, yInput)
-      # calculateQuadraticModel(xInput, yInput)
-      # getBestSlicedModel(xInput, yInput, False)
-      # getBestSlicedModel(xInput, yInput, True)
+      calculateQuadraticModel(xInput, yInput)
+      getBestSlicedModel(xInput, yInput, False)
+      getBestSlicedModel(xInput, yInput, True)
     else:
       print('X and Y values are not the same length')
 except Exception as err:
