@@ -214,7 +214,7 @@ def getBestSlicedModel(xInput, yInput, rightModel):
 def getInputValues():
   d = dict()
   try:
-    input = pd.read_csv('./input.csv')
+    input = pd.read_csv('./input1.csv')
     inputColumns = pd.DataFrame(input, columns=['xInput', 'yInput'])
     d['xInput'] = inputColumns['xInput'].tolist()
     d['yInput'] = inputColumns['yInput'].tolist()
@@ -235,9 +235,9 @@ try:
 
     if len(xInput) == len(yInput):
       calculateDualModel(xInput, yInput)
-      calculateQuadraticModel(xInput, yInput)
-      getBestSlicedModel(xInput, yInput, False)
-      getBestSlicedModel(xInput, yInput, True)
+      # calculateQuadraticModel(xInput, yInput)
+      # getBestSlicedModel(xInput, yInput, False)
+      # getBestSlicedModel(xInput, yInput, True)
     else:
       print('X and Y values are not the same length')
 except Exception as err:
