@@ -136,11 +136,10 @@ def calculateDualModel(xInput, yInput):
 
   # Extract optimized parameters
   params = [a.value[0], b.value[0], c.value[0], d.value[0]]
-  
   # Calculate fitted y-values using the optimized parameters outside GEKKO
-  yFittedValues = [params[0] + params[1] * x - params[2] * np.log(1 + params[3] * x) for x in xInput]
+  yFitted = [params[0] + params[1] * x - params[2] * np.log(1 + params[3] * x) for x in xInput]
   
-  residuals = np.array(yInput) - np.array(yFittedValues)
+  residuals = np.array(yInput) - np.array(yFitted)
   ssRes = np.sum(residuals ** 2)
   ssTot = np.sum((yInput - np.mean(yInput)) ** 2)
   rSquared = 1 - (ssRes / ssTot)
@@ -150,7 +149,7 @@ def calculateDualModel(xInput, yInput):
   adjustedRSquared = 1 - (1 - rSquared) * ((n - 1) / (n - p - 1))
 
   title = getCorrelationText(rSquared) + ', Adjusted R²=' + str(round(adjustedRSquared, decimals))
-  showDualPlotAndWriteToCSV(title, xInput, yInput, xInput, yFittedValues, params, fiMin)
+  showDualPlotAndWriteToCSV(title, xInput, yInput, xInput, yFitted, params, fiMin)
 
 def calculateQuadraticModel(xInput, yInput):
   power = 2
