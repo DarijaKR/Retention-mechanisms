@@ -4,7 +4,7 @@ import pandas as pd
 import sys
 import math
 import csv
-from scipy.optimize import curve_fit
+from gekko import GEKKO
 
 decimals = 4 # adjust if needed to change decimals used for calculation and graph presentation
 
@@ -99,29 +99,60 @@ def showSubplotsAndWriteToCSV(title1, title2, xInput1, yInput1, yResult1, xInput
     for i in range(len(xInput1)):
       writer.writerow([xInput1[i], yInput1[i], yResult1[i], xInput2[i], yInput2[i], yResult2[i]])
 
-def calculateDualModel(xInput, yInput):
-  modelFunction = lambda x, a, b, c, d: a + b * x - c * np.log10( 1 + d * x)
-  # adjust bounds and maxfev if needed for different precision
-  bounds = ([0, 0, 0, 0], [100, 100, 100, 100])
-  params, covariance = curve_fit(modelFunction, xInput, yInput, p0=(1, 1, 1, 1), maxfev = 10000, bounds = bounds)
+def calculateDualModel(xInput, yInput):    
+  # Initialize GEKKO model
+  m = GEKKO(remote=False)
+  
+  # Define parameters a, b, c, and d with initial values and bounds for flexibility
+  a = m.FV(value=0.5, lb=-10, ub=100)
+  b = m.FV(value=0.5, lb=-10, ub=100)
+  c = m.FV(value=0.5, lb=-10, ub=100)
+  d = m.FV(value=0.5, lb=-10, ub=100)
+  
+  # Enable parameters to be optimized
+  a.STATUS = 1
+  b.STATUS = 1
+  c.STATUS = 1
+  d.STATUS = 1
 
-  yFitted = modelFunction(xInput, *params)
-  residuals = yInput - yFitted
-  ssRes = np.sum(residuals**2)
-  ssTot = np.sum((yInput - np.mean(yInput))**2)
+  # Define input data in GEKKO
+  x = m.Param(value=xInput)
+  yActual = m.CV(value=yInput)  # Controlled variable for y_input data
+  yFitted = m.Var()
+
+  # Define the model equation
+  m.Equation(yFitted == a + b * x - c * m.log(1 + d * x))
+  
+  # Objective: Minimize the sum of squared residuals
+  yActual.FSTATUS = 1  # FSTATUS=1 to indicate this as the measured value
+  m.Minimize((yActual - yFitted) ** 2)
+
+  # Adjust solver options
+  m.options.IMODE = 2  # Steady-state optimization
+  m.options.MAX_ITER = 10000  # Increase max iterations for better convergence
+  m.options.RTOL = 1e-6  # Relative tolerance for accuracy
+  m.options.OTOL = 1e-6  # Absolute tolerance for accuracy
+  m.solve(disp=False)
+
+  # Extract optimized parameters
+  params = [a.value[0], b.value[0], c.value[0], d.value[0]]
+  
+  # Calculate fitted y-values using the optimized parameters outside GEKKO
+  yFittedValues = [params[0] + params[1] * x - params[2] * np.log(1 + params[3] * x) for x in xInput]
+  
+  residuals = np.array(yInput) - np.array(yFittedValues)
+  ssRes = np.sum(residuals ** 2)
+  ssTot = np.sum((yInput - np.mean(yInput)) ** 2)
   rSquared = 1 - (ssRes / ssTot)
+  print(params)
+  # TODO: fix fiMin
   fiMin = round((0.434*params[2])/(params[1])-1/params[3], decimals)
-
   n = len(yInput)
   p = len(params)
   adjustedRSquared = 1 - (1 - rSquared) * ((n - 1) / (n - p - 1))
 
-  coordinatesSet1 = list(zip(xInput, yInput))
-  coordinatesSet2 = list(zip(xInput, yFitted))
-  xSet1, ySet1 = zip(*coordinatesSet1)
-  xSet2, ySet2 = zip(*coordinatesSet2)
-  title = getCorrelationText(rSquared) + ', Adjusted R\u00b2=' + str(round(adjustedRSquared, decimals))
-  showDualPlotAndWriteToCSV(title, xSet1, ySet1, xSet2, ySet2, params, fiMin)
+  title = getCorrelationText(rSquared) + ', Adjusted R²=' + str(round(adjustedRSquared, decimals))
+  showDualPlotAndWriteToCSV(title, xInput, yInput, xInput, yFittedValues, params, fiMin)
 
 def calculateQuadraticModel(xInput, yInput):
   power = 2
@@ -197,8 +228,8 @@ def getInputValues():
   try:
     input = pd.read_csv('./input.csv')
     inputColumns = pd.DataFrame(input, columns=['xInput', 'yInput'])
-    d['xInput'] = inputColumns.get('xInput')
-    d['yInput'] = inputColumns.get('yInput')
+    d['xInput'] = inputColumns['xInput'].tolist()
+    d['yInput'] = inputColumns['yInput'].tolist()
   except Exception as err:
     if (len(sys.argv) != 3):
       print('Please input valid X and Y values from CSV or command line arguments')
@@ -210,15 +241,15 @@ def getInputValues():
 
 try:
   input = getInputValues()
-  if (input):
+  if input:
     xInput = list(map(float, input['xInput']))
     yInput = list(map(float, input['yInput']))
 
-    if (len(xInput) == len(yInput)):
-      calculateDualModel(input['xInput'], input['yInput']) # uses different input format
-      calculateQuadraticModel(xInput, yInput)
-      getBestSlicedModel(xInput, yInput, False)
-      getBestSlicedModel(xInput, yInput, True)
+    if len(xInput) == len(yInput):
+      calculateDualModel(xInput, yInput)
+      # calculateQuadraticModel(xInput, yInput)
+      # getBestSlicedModel(xInput, yInput, False)
+      # getBestSlicedModel(xInput, yInput, True)
     else:
       print('X and Y values are not the same length')
 except Exception as err:
