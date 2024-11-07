@@ -103,17 +103,9 @@ def calculateDualModel(xInput, yInput):
   # Initialize GEKKO model
   m = GEKKO(remote=False)
   
-  # Define parameters a, b, c, and d with initial values and bounds for flexibility
-  a = m.FV(value=0.5, lb=-10, ub=100)
-  b = m.FV(value=0.5, lb=-10, ub=100)
-  c = m.FV(value=0.5, lb=-10, ub=100)
-  d = m.FV(value=0.5, lb=-10, ub=100)
-  
-  # Enable parameters to be optimized
-  a.STATUS = 1
-  b.STATUS = 1
-  c.STATUS = 1
-  d.STATUS = 1
+  # Define parameters a, b, c, and d with initial values and bounds, and enable parameters to be optimized 
+  a, b, c, d = [m.FV(value=0.5, lb=-10, ub=100) for _ in range(4)]
+  for param in (a, b, c, d): param.STATUS = 1
 
   # Define input data in GEKKO
   x = m.Param(value=xInput)
@@ -122,9 +114,8 @@ def calculateDualModel(xInput, yInput):
 
   # Define the model equation
   m.Equation(yFitted == a + b * x - c * m.log(1 + d * x))
-  
   # Objective: Minimize the sum of squared residuals
-  yActual.FSTATUS = 1  # FSTATUS=1 to indicate this as the measured value
+  yActual.FSTATUS = 1 # FSTATUS=1 to indicate this as the measured value
   m.Minimize((yActual - yFitted) ** 2)
 
   # Adjust solver options
