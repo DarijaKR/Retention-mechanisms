@@ -37,7 +37,7 @@ def getMinValuesText(coefficients):
   fiMin = -coefficients[1] / (2 * coefficients[0])
   yMin = ((decimals * coefficients[0] * coefficients[2]) - math.pow(coefficients[1], 2)) / (decimals * coefficients[0])
   yMinAntilog = math.pow(10, yMin)
-  return ', Fimin=' + str(round(fiMin, decimals)) + ', yMin=' + str(round(yMin, decimals)) + ', k\'=' + str(round(yMinAntilog, decimals))
+  return ', \u03A6min=' + str(round(fiMin, decimals)) + ', yMin=' + str(round(yMin, decimals)) + ', k\'=' + str(round(yMinAntilog, decimals))
 
 def calculateY(xInput, power, polynomialCoefficients):
   result = []
@@ -54,7 +54,7 @@ def showDualPlotAndWriteToCSV(title, xSet1, ySet1, xSet2, ySet2, params, fiMin):
   subtitle = 'Params='
   for i in range(len(params)):
     subtitle += str(round(params[i], decimals)) + ', '
-  plt.suptitle(subtitle + 'Fimin=' + str(fiMin))
+  plt.suptitle(subtitle + '\u03A6min=' + str(fiMin))
   plt.plot(xSet1, ySet1, label='Set 1', color='blue')
   plt.plot(xSet1, ySet1, marker='o', color='blue')
   plt.plot(xSet2, ySet2, label='Set 2', color='red')
